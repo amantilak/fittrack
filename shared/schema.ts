@@ -108,6 +108,11 @@ export const activities = pgTable("activities", {
   description: text("description"),
   proofLink: text("proof_link"),
   proofImage: text("proof_image"),
+  // Strava integration fields
+  externalId: text("external_id"), // Strava activity ID
+  externalSource: text("external_source"), // 'strava', 'manual', etc.
+  elevationGain: integer("elevation_gain"), // in meters
+  avgHeartRate: integer("avg_heart_rate"), // in bpm
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

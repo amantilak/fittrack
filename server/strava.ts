@@ -1,9 +1,4 @@
-import { db } from './db';
-import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
-
-// Strava API Base URL
-const STRAVA_API_URL = 'https://www.strava.com/api/v3';
+import fetch from 'node-fetch';
 
 /**
  * Get Strava authentication URL
@@ -12,8 +7,8 @@ const STRAVA_API_URL = 'https://www.strava.com/api/v3';
  * @returns The Strava OAuth URL
  */
 export function getStravaAuthUrl(clientId: string, redirectUri: string): string {
-  const scope = 'read,activity:read_all';
-  return `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&approval_prompt=force&scope=${scope}`;
+  const scopes = 'read,activity:read_all';
+  return `https://www.strava.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${scopes}`;
 }
 
 /**
@@ -24,36 +19,31 @@ export function getStravaAuthUrl(clientId: string, redirectUri: string): string 
  * @returns The access token and refresh token
  */
 export async function exchangeToken(code: string, clientId: string, clientSecret: string) {
-  try {
-    const response = await fetch('https://www.strava.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        code,
-        grant_type: 'authorization_code',
-      }),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to exchange token');
-    }
-
-    return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresAt: data.expires_at,
-      athlete: data.athlete,
-    };
-  } catch (error) {
-    console.error('Error exchanging token:', error);
-    throw error;
+  const response = await fetch('https://www.strava.com/oauth/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: 'authorization_code',
+    }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Failed to exchange token: ${error.message || 'Unknown error'}`);
   }
+  
+  const data = await response.json();
+  
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: data.expires_at,
+  };
 }
 
 /**
@@ -64,35 +54,31 @@ export async function exchangeToken(code: string, clientId: string, clientSecret
  * @returns The new access token and refresh token
  */
 export async function refreshStravaToken(refreshToken: string, clientId: string, clientSecret: string) {
-  try {
-    const response = await fetch('https://www.strava.com/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        refresh_token: refreshToken,
-        grant_type: 'refresh_token',
-      }),
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to refresh token');
-    }
-
-    return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresAt: data.expires_at,
-    };
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    throw error;
+  const response = await fetch('https://www.strava.com/oauth/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Failed to refresh token: ${error.message || 'Unknown error'}`);
   }
+  
+  const data = await response.json();
+  
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: data.expires_at,
+  };
 }
 
 /**
@@ -104,30 +90,24 @@ export async function refreshStravaToken(refreshToken: string, clientId: string,
  * @returns Array of activities
  */
 export async function getStravaActivities(accessToken: string, after?: number, page: number = 1, perPage: number = 30) {
-  try {
-    let url = `${STRAVA_API_URL}/athlete/activities?page=${page}&per_page=${perPage}`;
-    
-    if (after) {
-      url += `&after=${after}`;
-    }
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to get activities');
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error getting activities:', error);
-    throw error;
+  let url = `https://www.strava.com/api/v3/athlete/activities?page=${page}&per_page=${perPage}`;
+  
+  if (after) {
+    url += `&after=${after}`;
   }
+  
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+    },
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(`Failed to get activities: ${error.message || 'Unknown error'}`);
+  }
+  
+  return await response.json();
 }
 
 /**
@@ -136,16 +116,10 @@ export async function getStravaActivities(accessToken: string, after?: number, p
  * @param stravaToken The Strava token
  */
 export async function saveStravaToken(userId: number, stravaToken: string) {
-  try {
-    await db.update(users)
-      .set({ stravaToken })
-      .where(eq(users.id, userId));
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Error saving Strava token:', error);
-    throw error;
-  }
+  // This function would typically update the user's record in the database
+  // but since we're using the storage interface, we'll need to call that directly
+  // from the route handler
+  console.log(`Saving Strava token for user ${userId}`);
 }
 
 /**
@@ -154,14 +128,9 @@ export async function saveStravaToken(userId: number, stravaToken: string) {
  * @returns The Strava token
  */
 export async function getStravaToken(userId: number) {
-  try {
-    const [user] = await db.select({ stravaToken: users.stravaToken })
-      .from(users)
-      .where(eq(users.id, userId));
-    
-    return user?.stravaToken;
-  } catch (error) {
-    console.error('Error getting Strava token:', error);
-    throw error;
-  }
+  // This function would typically retrieve the user's record from the database
+  // but since we're using the storage interface, we'll need to call that directly
+  // from the route handler
+  console.log(`Getting Strava token for user ${userId}`);
+  return null;
 }
