@@ -1,0 +1,170 @@
+Website Flow Draft
+1. Admin Panel Features
+Admin Login
+* Functionalities:
+    * Secure login with validation.
+    * Session management with auth middleware.
+* Capabilities:
+    * Admins can create new admin users with customizable permissions (read, edit, delete access to user data).
+Client Management
+* Functionalities:
+    * Admins can add clients with unique data:
+        * Client Data:
+            * Name, logo, and base route path (e.g., /monkdesk).
+        * Generates dynamic login and dashboard routes:
+            * https://example.com/{client_base_path}/login
+            * https://example.com/{client_base_path}/dashboard
+        * Each client's login page displays their logo.
+User Management
+* Add New User:
+    * Form with fields as mentioned.
+    * Unique Athlete ID generated (e.g., CYA12345).
+    * File upload option for bulk user creation via CSV.
+* User Data Fields:
+    * Includes personal details, preferences, and emergency contacts.
+* Account Management:
+    * Manage status: Active/Inactive.
+
+2. User Login and Activity Management
+User Login
+* Validations:
+    * Client-side and server-side validations for secure access.
+    * Login based on client-specific URLs.
+Workout Activity Form
+* Fields:
+    * Activity type: Running, Cycling, Walking.
+    * Duration: Hours, Minutes, Seconds.
+    * Date, Distance, Title, Description.
+    * Proofs for activities >10 KM:
+        * Link or image upload.
+* Validations:
+    * Time validation for specific distances:
+        * 1 KM: 3-15 mins.
+        * 2 KM: 6-30 mins.
+        * 5 KM: 20-75 mins.
+        * 10 KM: 35-120 mins.
+        * 15 KM: 60-180 mins.
+        * 21.1 KM: 80-210 mins.
+        * 42.2 KM: 180-400 mins.
+Strava Integration
+* Features:
+    * Connect user accounts to Strava via API.
+    * Auto-record activities using Strava webhooks.
+
+3. Leaderboard
+Types
+* Overall Leaderboard:
+    * Searchable with pagination.
+* Category-Specific Leaderboards:
+    * Top 5 for Men and Women.
+    * Links to view detailed Top 100 lists in modals with search.
+* Activity-Specific Leaderboards:
+    * Cycling, Running, Walking.
+Metrics
+* Fields:
+    * Rank, Name, Total KM, Total Time.
+
+4. Certificates
+Types
+* Stage Certificates:
+    * Four stages with individual certificate links.
+* Monthly Certificates:
+    * 12 certificate links (one for each month).
+
+5. Profile Settings
+Functionalities
+* Update personal information, including profile picture.
+* Change password securely.
+
+6. My Workout Page
+Features
+* Data View:
+    * Filter data by month or specific date range.
+    * Paginated workout list.
+* Graphical Representation:
+    * Line graphs showing activity trends by month.
+* Fields:
+    * Activity type, date, distance, duration, and title.
+
+Step-by-Step Laravel Implementation
+This flow requires the following Laravel components:
+Database Design
+Migration Files
+1. Admin Table:
+    * ID, Name, Email, Password, Permissions.
+2. Clients Table:
+    * ID, Name, Base Path, Logo URL.
+3. Users Table:
+    * ID, Athlete ID, Personal Details, Status, Client ID (foreign key).
+4. Activities Table:
+    * ID, User ID, Type, Date, Distance, Duration, Title, Description, Proofs.
+5. Leaderboards Table:
+    * ID, User ID, Type, Total Distance, Total Time.
+6. Certificates Table:
+    * ID, User ID, Type (Stage/Month), Link.
+
+Backend APIs
+1. Admin APIs:
+    * Create, update, delete admins, users, and clients.
+2. User APIs:
+    * Authentication: Login and session management.
+    * Profile updates: Data and password changes.
+3. Activity APIs:
+    * Add and fetch activities.
+    * Validate based on distance and duration.
+4. Leaderboard APIs:
+    * Fetch overall and category-specific data.
+5. Certificate APIs:
+    * Fetch stage and monthly certificates.
+
+Frontend Integration
+1. Dynamic Routing:
+    * Setup routes based on the client's base path.
+2. Responsive UI:
+    * Login, dashboard, forms, and leaderboards.
+
+
+
+Form Fields for User Management
+Personal Information
+1. Name (Mandatory) - name
+2. Phone Number (Mandatory) - phone_number
+3. Date of Birth (Mandatory) - date_of_birth
+4. Gender (Mandatory) - gender
+Address Details
+5. Group Name - group_name
+6. Address - address
+7. Country (Mandatory) - country
+8. State (Mandatory) - state
+9. City (Mandatory) - city
+10. Zipcode (Mandatory) - zipcode
+Preferences and Other Details
+11. Shoes Brand and Model - shoes_brand_model
+12. GPS Watch and Model - gps_watch_model
+13. Preferred Hydration Supplement - hydration_supplement
+Health Information
+14. Medical History (Dropdown with options) - medical_history
+15. Blood Group (Dropdown with options) - blood_group
+16. T-Shirt Size (Dropdown with options) - tshirt_size
+17. Any Allergies - allergies
+Emergency Contact
+18. Emergency Contact Name - emergency_contact_name
+19. Emergency Contact Number - emergency_contact_number
+Profile
+20. Profile Photo - profile_photo (File upload)
+21. Account Status (Active/Inactive) - account_status
+
+Field Details for Validation
+* Dropdown Fields:
+    * Medical History Options:
+        * None
+        * Asthma
+        * Diabetes
+        * Heart Condition
+        * Other (Specify)
+    * Blood Group Options:
+        * A+, A-, B+, B-, AB+, AB-, O+, O-
+    * T-Shirt Size Options:
+        * XS, S, M, L, XL, XXL, XXXL
+* File Upload Validation:
+    * Profile Photo: Accept only image files (jpg, jpeg, png) with a maximum size of 2MB.
