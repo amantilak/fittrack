@@ -1,6 +1,7 @@
 import { pgTable, text, serial, integer, boolean, timestamp, json, doublePrecision, foreignKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // Admin table
 export const admins = pgTable("admins", {
@@ -23,7 +24,7 @@ export const clients = pgTable("clients", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   basePath: text("base_path").notNull().unique(),
-  logoUrl: text("logo_url"),
+  logoUrl: text("logo_url").default(null),
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -129,6 +130,34 @@ export type InsertClient = z.infer<typeof insertClientSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type InsertCertificate = z.infer<typeof insertCertificateSchema>;
+
+// Define Relations
+export const clientsRelations = relations(clients, ({ many }) => ({
+  users: many(users),
+}));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [users.clientId],
+    references: [clients.id],
+  }),
+  activities: many(activities),
+  certificates: many(certificates),
+}));
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id],
+  }),
+}));
+
+export const certificatesRelations = relations(certificates, ({ one }) => ({
+  user: one(users, {
+    fields: [certificates.userId],
+    references: [users.id],
+  }),
+}));
 
 // Create Select Types
 export type Admin = typeof admins.$inferSelect;
