@@ -2,12 +2,32 @@ import express, { Router, Request, Response } from 'express';
 import { storage } from '../storage';
 import { getStravaActivities, refreshStravaToken } from '../strava';
 import crypto from 'crypto';
+import fetch from 'node-fetch';
+import { z } from 'zod';
+import { ZodError } from 'zod';
+import { fromZodError } from 'zod-validation-error';
 
 const router = Router();
 
 // Strava webhook verification token
 // This should be a randomly generated string that you specify in the Strava API settings
 const STRAVA_VERIFICATION_TOKEN = process.env.STRAVA_VERIFICATION_TOKEN || 'fitness-tracking-verification-token';
+
+// Keep track of the current webhook subscription
+let currentSubscription: { id: number; callbackUrl: string } | null = null;
+
+// Helper to validate request
+const validateRequest = (schema: any, body: any) => {
+  try {
+    return schema.parse(body);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const validationError = fromZodError(error);
+      throw new Error(validationError.message);
+    }
+    throw error;
+  }
+};
 
 // Webhook verification endpoint (GET)
 // This is used by Strava to verify the webhook subscription
@@ -169,5 +189,156 @@ async function processWebhookEvent(event: any) {
     console.error('Error processing Strava webhook event:', error);
   }
 }
+
+// Get webhook subscription status
+router.get('/status', async (_req, res) => {
+  try {
+    if (currentSubscription) {
+      // Return the cached subscription
+      res.json({
+        active: true,
+        id: currentSubscription.id,
+        callbackUrl: currentSubscription.callbackUrl
+      });
+      return;
+    }
+    
+    // Check with Strava API
+    const clientId = process.env.STRAVA_CLIENT_ID;
+    const clientSecret = process.env.STRAVA_CLIENT_SECRET;
+    
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ error: 'Strava client ID or client secret not configured' });
+    }
+    
+    const response = await fetch(`https://www.strava.com/api/v3/push_subscriptions?client_id=${clientId}&client_secret=${clientSecret}`);
+    
+    if (!response.ok) {
+      // Just return inactive if we can't get the status
+      return res.json({ active: false });
+    }
+    
+    const subscriptions = await response.json();
+    
+    if (Array.isArray(subscriptions) && subscriptions.length > 0) {
+      // Store the subscription
+      const subscription = subscriptions[0];
+      currentSubscription = {
+        id: subscription.id,
+        callbackUrl: subscription.callback_url
+      };
+      
+      res.json({
+        active: true,
+        id: subscription.id,
+        callbackUrl: subscription.callback_url
+      });
+    } else {
+      res.json({ active: false });
+    }
+  } catch (error: any) {
+    console.error('Error getting webhook status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create webhook subscription
+router.post('/create', async (req, res) => {
+  try {
+    const schema = z.object({
+      callbackUrl: z.string().url(),
+      verificationToken: z.string().optional()
+    });
+    
+    const { callbackUrl, verificationToken } = validateRequest(schema, req.body);
+    
+    const clientId = process.env.STRAVA_CLIENT_ID;
+    const clientSecret = process.env.STRAVA_CLIENT_SECRET;
+    
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ error: 'Strava client ID or client secret not configured' });
+    }
+    
+    // Use the provided verification token or the default one
+    const token = verificationToken || STRAVA_VERIFICATION_TOKEN;
+    
+    // Create webhook subscription
+    const response = await fetch('https://www.strava.com/api/v3/push_subscriptions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        callback_url: callbackUrl,
+        verify_token: token
+      }).toString()
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to create webhook subscription');
+    }
+    
+    const subscription = await response.json();
+    
+    // Store the subscription
+    currentSubscription = {
+      id: subscription.id,
+      callbackUrl
+    };
+    
+    res.json({
+      success: true,
+      id: subscription.id,
+      callbackUrl
+    });
+  } catch (error: any) {
+    console.error('Error creating webhook subscription:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete webhook subscription
+router.post('/delete', async (_req, res) => {
+  try {
+    if (!currentSubscription) {
+      return res.status(404).json({ error: 'No webhook subscription found' });
+    }
+    
+    const clientId = process.env.STRAVA_CLIENT_ID;
+    const clientSecret = process.env.STRAVA_CLIENT_SECRET;
+    
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ error: 'Strava client ID or client secret not configured' });
+    }
+    
+    // Delete webhook subscription
+    const response = await fetch(`https://www.strava.com/api/v3/push_subscriptions/${currentSubscription.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret
+      }).toString()
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete webhook subscription');
+    }
+    
+    // Clear the subscription
+    currentSubscription = null;
+    
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error('Error deleting webhook subscription:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 export default router;

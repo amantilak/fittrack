@@ -465,8 +465,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mount Import routes (CSV)
   app.use('/api/import', isAdminAuthenticated, importRoutes);
   
-  // Mount Strava webhook routes (no auth needed for webhook callbacks)
-  app.use('/api/strava-webhook', stravaWebhookRoutes);
+  // Mount Strava webhook routes with selective authentication
+  // The root webhook endpoint doesn't need auth (for Strava callbacks)
+  app.use('/api/strava-webhook', (req, res, next) => {
+    // Skip authentication for GET and POST to root webhook endpoint (Strava verification and events)
+    if ((req.method === 'GET' || req.method === 'POST') && req.path === '/') {
+      return next();
+    }
+    
+    // Require admin authentication for all other routes
+    return isAdminAuthenticated(req, res, next);
+  }, stravaWebhookRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

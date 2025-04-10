@@ -6,6 +6,7 @@ import { AdminStatsCards } from "@/components/dashboard/stats-cards";
 import { DashboardTabs } from "@/components/dashboard/dashboard-tabs";
 import ClientManagement from "@/components/admin/client-management";
 import UserManagement from "@/components/admin/user-management";
+import StravaWebhookManagement from "@/components/admin/strava-webhook-management";
 import { MobileSidebarToggle } from "@/components/layout/sidebar";
 import { Loader2 } from "lucide-react";
 
@@ -70,6 +71,36 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Leaderboards</h2>
           <div className="bg-white shadow-sm rounded-lg p-6">
             <p className="text-gray-500">Leaderboard functionality will be implemented here.</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "strava-webhooks",
+      label: "Strava Webhooks",
+      content: (
+        <div className="mt-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Strava Webhook Management</h2>
+          <div className="space-y-6">
+            <div className="bg-white shadow-sm rounded-lg">
+              <StravaWebhookManagement />
+            </div>
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              <h3 className="text-md font-medium mb-2">About Strava Webhooks</h3>
+              <p className="text-gray-500 mb-4">
+                Webhooks enable automatic syncing of user activities from Strava. When a user completes a
+                workout on Strava, it will be automatically imported to the platform.
+              </p>
+              <div className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 text-gray-700 text-sm">
+                <p className="font-medium">Important Notes:</p>
+                <ul className="list-disc list-inside mt-1 space-y-1">
+                  <li>The callback URL must be publicly accessible</li>
+                  <li>For testing, you can use ngrok or a similar service</li>
+                  <li>In production, use your domain with HTTPS</li>
+                  <li>Only one webhook subscription is allowed per Strava application</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       ),
