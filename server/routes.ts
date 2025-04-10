@@ -11,6 +11,7 @@ import { fromZodError } from "zod-validation-error";
 import MemoryStore from "memorystore";
 import stravaRoutes from "./routes/strava";
 import importRoutes from "./routes/import";
+import stravaWebhookRoutes from "./routes/strava-webhook";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
@@ -463,6 +464,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount Import routes (CSV)
   app.use('/api/import', isAdminAuthenticated, importRoutes);
+  
+  // Mount Strava webhook routes (no auth needed for webhook callbacks)
+  app.use('/api/strava-webhook', stravaWebhookRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
