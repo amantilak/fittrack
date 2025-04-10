@@ -24,7 +24,7 @@ export const clients = pgTable("clients", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   basePath: text("base_path").notNull().unique(),
-  logoUrl: text("logo_url").default(null),
+  logoUrl: text("logo_url"),
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -75,7 +75,14 @@ export const users = pgTable("users", {
   
   // Profile
   profilePhoto: text("profile_photo"),
+  stravaToken: text("strava_token"),
+  fitnessLevel: text("fitness_level").notNull().default("beginner"),
+  fitnessGoals: text("fitness_goals"),
   accountStatus: text("account_status").notNull().default("active"),
+  
+  // Physical attributes
+  weight: doublePrecision("weight"),
+  height: doublePrecision("height"),
   
   // Metadata
   createdAt: timestamp("created_at").notNull().defaultNow(),
