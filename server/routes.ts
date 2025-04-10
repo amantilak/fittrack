@@ -9,6 +9,8 @@ import { insertAdminSchema, insertClientSchema, insertUserSchema, insertActivity
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import MemoryStore from "memorystore";
+import stravaRoutes from "./routes/strava";
+import importRoutes from "./routes/import";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
@@ -455,6 +457,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: error.message });
     }
   });
+
+  // Mount Strava routes
+  app.use('/api/strava', isUserAuthenticated, stravaRoutes);
+  
+  // Mount Import routes (CSV)
+  app.use('/api/import', isAdminAuthenticated, importRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
