@@ -79,86 +79,93 @@ export function Sidebar({ user, mobile = false, onClose }: SidebarProps) {
       <div className="flex flex-col flex-grow py-4 overflow-y-auto scrollbar-hide">
         <div className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase">Main</div>
         <nav className="flex-1 space-y-1 px-2">
-          <Link href="/admin/dashboard">
-            <a className={cn(
+          <Link 
+            href="/admin/dashboard"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/dashboard") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <Home className="w-5 h-5 mr-2" />
-              <span>Dashboard</span>
-            </a>
+            )}
+          >
+            <Home className="w-5 h-5 mr-2" />
+            <span>Dashboard</span>
           </Link>
-          <Link href="/admin/clients">
-            <a className={cn(
+          <Link 
+            href="/admin/clients"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/clients") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <Building2 className="w-5 h-5 mr-2" />
-              <span>Client Management</span>
-            </a>
+            )}
+          >
+            <Building2 className="w-5 h-5 mr-2" />
+            <span>Client Management</span>
           </Link>
-          <Link href="/admin/users">
-            <a className={cn(
+          <Link 
+            href="/admin/users"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/users") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <Users className="w-5 h-5 mr-2" />
-              <span>User Management</span>
-            </a>
+            )}
+          >
+            <Users className="w-5 h-5 mr-2" />
+            <span>User Management</span>
           </Link>
-          <Link href="/admin/leaderboards">
-            <a className={cn(
+          <Link 
+            href="/admin/leaderboards"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/leaderboards") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <Trophy className="w-5 h-5 mr-2" />
-              <span>Leaderboards</span>
-            </a>
+            )}
+          >
+            <Trophy className="w-5 h-5 mr-2" />
+            <span>Leaderboards</span>
           </Link>
-          <Link href="/admin/certificates">
-            <a className={cn(
+          <Link 
+            href="/admin/certificates"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/certificates") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <Award className="w-5 h-5 mr-2" />
-              <span>Certificates</span>
-            </a>
+            )}
+          >
+            <Award className="w-5 h-5 mr-2" />
+            <span>Certificates</span>
           </Link>
         </nav>
         
         <div className="px-4 mt-4 mb-2 text-xs font-semibold text-gray-400 uppercase">Settings</div>
         <nav className="flex-1 space-y-1 px-2">
-          <Link href="/admin/settings">
-            <a className={cn(
+          <Link 
+            href="/admin/settings"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/settings") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <Settings className="w-5 h-5 mr-2" />
-              <span>Settings</span>
-            </a>
+            )}
+          >
+            <Settings className="w-5 h-5 mr-2" />
+            <span>Settings</span>
           </Link>
-          <Link href="/admin/admins">
-            <a className={cn(
+          <Link 
+            href="/admin/admins"
+            className={cn(
               "flex items-center px-2 py-2 text-sm font-medium rounded-md",
               isActive("/admin/admins") 
                 ? "bg-gray-800 text-white" 
                 : "text-gray-300 hover:bg-gray-800 hover:text-white"
-            )}>
-              <ShieldAlert className="w-5 h-5 mr-2" />
-              <span>Admin Users</span>
-            </a>
+            )}
+          >
+            <ShieldAlert className="w-5 h-5 mr-2" />
+            <span>Admin Users</span>
           </Link>
         </nav>
       </div>
