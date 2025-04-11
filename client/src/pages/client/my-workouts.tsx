@@ -52,7 +52,10 @@ import {
   Search,
   CalendarRange
 } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Share2 } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ActivityDetail } from "@/components/activity/activity-detail";
+import { SocialShare } from "@/components/social/social-share";
 
 interface MyWorkoutsProps {
   basePath: string;
@@ -67,6 +70,7 @@ export default function MyWorkouts({ basePath }: MyWorkoutsProps) {
   const [dateRangeStart, setDateRangeStart] = useState<string>("");
   const [dateRangeEnd, setDateRangeEnd] = useState<string>("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<any>(null);
   const itemsPerPage = 10;
 
   const { data: activities = [], isLoading: isLoadingActivities } = useQuery({
@@ -509,9 +513,64 @@ export default function MyWorkouts({ basePath }: MyWorkoutsProps) {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm" className="text-primary">
-                            View <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="text-primary"
+                                  onClick={() => setSelectedActivity(activity)}
+                                >
+                                  View <ChevronRight className="h-4 w-4 ml-1" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-3xl">
+                                <ActivityDetail 
+                                  activity={activity}
+                                  userName={user?.name || "Athlete"}
+                                  clientName={client?.name || "FitTrack"}
+                                />
+                              </DialogContent>
+                            </Dialog>
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="text-primary"
+                                  onClick={() => setSelectedActivity(activity)}
+                                >
+                                  <Share2 className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <div className="flex flex-col items-center space-y-4">
+                                  <h3 className="text-lg font-medium">Share Your Workout</h3>
+                                  <p className="text-sm text-gray-500 text-center">
+                                    Share your {activity.type} workout with friends and family
+                                  </p>
+                                  
+                                  <ActivityShareCard 
+                                    activity={activity}
+                                    userName={user?.name || "Athlete"}
+                                    clientName={client?.name || "FitTrack"}
+                                    className="my-4"
+                                  />
+                                  
+                                  <div className="flex flex-col space-y-2 w-full">
+                                    <h4 className="text-sm font-medium">Share via:</h4>
+                                    <SocialShare
+                                      title={`${user?.name || "Athlete"}'s ${activity.type} Workout`}
+                                      text={`I just completed a ${activity.distance.toFixed(2)} KM ${activity.type} in ${formatDuration(activity.duration)}! ${activity.title} #Fitness #${activity.type}`}
+                                      showLabel={true}
+                                      className="justify-center"
+                                    />
+                                  </div>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
